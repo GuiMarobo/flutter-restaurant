@@ -28,7 +28,9 @@ class ItemDetailPage extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             item.name,
-            style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
           Text(

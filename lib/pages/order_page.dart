@@ -46,15 +46,19 @@ class _OrderPageState extends State<OrderPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.receipt_long,
-                      size: 64, color: colors.onSurfaceVariant),
+                  Icon(
+                    Icons.receipt_long,
+                    size: 64,
+                    color: colors.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 12),
                   Text('Seu pedido está vazio', style: textTheme.titleMedium),
                   const SizedBox(height: 4),
                   Text(
                     'Adicione itens do cardápio',
-                    style: textTheme.bodyMedium
-                        ?.copyWith(color: colors.onSurfaceVariant),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),

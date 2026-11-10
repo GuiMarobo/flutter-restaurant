@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/menu_data.dart';
 import '../models/menu_item.dart';
+import '../utils/search_query.dart';
 import '../widgets/menu_item_card.dart';
 import 'item_detail_page.dart';
 import 'order_page.dart';
@@ -15,13 +16,51 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String _selectedCategory = categories.first; // categoria selecionada nos chips
+  String _selectedCategory =
+      categories.first; // categoria selecionada nos chips
   final List<MenuItem> _order = []; // itens adicionados ao pedido
 
-  // Filtra os itens do cardápio pela categoria escolhida
-  List<MenuItem> get _filteredItems => _selectedCategory == 'Todos'
-      ? menuItems
-      : menuItems.where((i) => i.category == _selectedCategory).toList();
+  final _formKey = GlobalKey<FormState>();
+  final _searchController = TextEditingController();
+  String? _searchTerm; // termo válido da última pesquisa (null = sem pesquisa)
+  // Só começa a validar enquanto digita depois da primeira tentativa
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+
+  // Filtra os itens do cardápio pela categoria escolhida e pelo nome pesquisado
+  List<MenuItem> get _filteredItems => menuItems
+      .where(
+        (i) => _selectedCategory == 'Todos' || i.category == _selectedCategory,
+      )
+      .where((i) => _searchTerm == null || matchesQuery(i.name, _searchTerm!))
+      .toList();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _search() {
+    // Consulta inválida: mostra o erro no campo e não pesquisa
+    if (!_formKey.currentState!.validate()) {
+      setState(() => _autovalidateMode = AutovalidateMode.onUserInteraction);
+      return;
+    }
+    final term = normalizeQuery(_searchController.text);
+    setState(() {
+      _searchTerm = term;
+      _searchController.text = term; // mostra o termo já sem espaços extras
+    });
+    FocusScope.of(context).unfocus();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() {
+      _searchTerm = null;
+      _autovalidateMode = AutovalidateMode.disabled;
+    });
+  }
 
   double get _orderTotal => _order.fold(0, (sum, i) => sum + i.price);
 
@@ -62,7 +101,8 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // alinha os filhos à esquerda
+        crossAxisAlignment:
+            CrossAxisAlignment.start, // alinha os filhos à esquerda
         children: [
           // Cabeçalho: boas-vindas, mesa e campo de busca
           Padding(
@@ -73,39 +113,105 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Text(
                   'Bem-vindo!',
-                  style: textTheme.headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Row(
                   spacing: 6,
                   children: [
-                    Icon(Icons.table_restaurant,
-                        size: 18, color: colors.primary),
+                    Icon(
+                      Icons.table_restaurant,
+                      size: 18,
+                      color: colors.primary,
+                    ),
                     Text(
                       'Mesa 05 · Escolha seu prato e faça o pedido',
-                      style: textTheme.bodyMedium
-                          ?.copyWith(color: colors.onSurfaceVariant),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Buscar no cardápio...', // placeholder
-                    prefixIcon: Icon(Icons.search, color: colors.primary),
-                    filled: true,
-                    fillColor: Colors.white,
-                    isDense: true,
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
-                    // borda quando o campo está selecionado
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: const BorderRadius.all(Radius.circular(12)),
-                      borderSide: BorderSide(color: colors.primary, width: 2),
-                    ),
+                // Form agrupa o campo para validar antes de pesquisar
+                Form(
+                  key: _formKey,
+                  autovalidateMode: _autovalidateMode,
+                  child: Row(
+                    spacing: 8,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          key: const Key('searchField'),
+                          controller: _searchController,
+                          textInputAction: TextInputAction.search,
+                          onFieldSubmitted: (_) =>
+                              _search(), // Enter também pesquisa
+                          validator: validateQuery,
+                          decoration: InputDecoration(
+                            labelText: 'Nome do prato', // rótulo do campo
+                            hintText: 'Ex.: Risoto', // placeholder
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: colors.primary,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            isDense: true,
+                            errorMaxLines: 4,
+                            border: const OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
+                            // borda quando o campo está selecionado
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                              borderSide: BorderSide(
+                                color: colors.primary,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Ação explícita de pesquisa
+                      SizedBox(
+                        height: 48,
+                        child: FilledButton(
+                          onPressed: _search,
+                          child: const Text('Pesquisar'),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                // Feedback da pesquisa: mostra o termo recebido
+                if (_searchTerm != null)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Resultados para "$_searchTerm": '
+                          '${_filteredItems.length} '
+                          '${_filteredItems.length == 1 ? 'prato' : 'pratos'}',
+                          key: const Key('searchFeedback'),
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: _clearSearch,
+                        icon: const Icon(Icons.close, size: 18),
+                        label: const Text('Limpar'),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -141,18 +247,30 @@ class _HomePageState extends State<HomePage> {
           ),
           // Expanded ocupa todo o espaço restante com a lista de pratos
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _filteredItems.length,
-              itemBuilder: (context, index) {
-                final item = _filteredItems[index];
-                return MenuItemCard(
-                  item: item,
-                  onAdd: () => _addToOrder(item),
-                  onTap: () => _openDetail(item),
-                );
-              },
-            ),
+            child: _filteredItems.isEmpty
+                ? Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'Nenhum prato encontrado. Confira o nome digitado, '
+                      'troque a categoria ou pesquise outro prato.',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _filteredItems.length,
+                    itemBuilder: (context, index) {
+                      final item = _filteredItems[index];
+                      return MenuItemCard(
+                        item: item,
+                        onAdd: () => _addToOrder(item),
+                        onTap: () => _openDetail(item),
+                      );
+                    },
+                  ),
           ),
           // Botão "Ver pedido" aparece só quando há itens no pedido
           if (_order.isNotEmpty)
@@ -198,16 +316,15 @@ class _HomePageState extends State<HomePage> {
 
   // Abre a tela de detalhes; se o usuário tocar em "Adicionar", entra no pedido
   Future<void> _openDetail(MenuItem item) async {
-    final added = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => ItemDetailPage(item: item)),
-    );
+    final added = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => ItemDetailPage(item: item)));
     if (added == true) _addToOrder(item);
   }
 
   Future<void> _openOrder() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => OrderPage(items: _order)),
-    );
+    await Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => OrderPage(items: _order)));
     setState(() {}); // atualiza o contador ao voltar do pedido
   }
 }
