@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'pages/home_page.dart';
+import 'routes.dart';
 
 // Paleta de cores do app
 const primary = Color(0xFFC0392B);
@@ -34,7 +34,8 @@ class RestaurantApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      initialRoute: AppRoutes.home,
+      onGenerateRoute: AppRoutes.generate, // define as navegações entre telas
     );
   }
 }

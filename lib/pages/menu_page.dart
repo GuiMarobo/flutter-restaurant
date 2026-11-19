@@ -2,42 +2,43 @@ import 'package:flutter/material.dart';
 
 import '../data/menu_data.dart';
 import '../models/menu_item.dart';
+import '../routes.dart';
+import '../services/menu_service.dart';
+import '../state/order_controller.dart';
 import '../utils/search_query.dart';
-import '../widgets/menu_item_card.dart';
-import 'item_detail_page.dart';
-import 'order_page.dart';
+import '../widgets/menu_list.dart';
+import '../widgets/state_view.dart';
 
-// Tela principal: mostra o cardápio do restaurante.
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+// Aba Cardápio: busca, categorias e lista de pratos.
+class MenuPage extends StatefulWidget {
+  final VoidCallback onOpenOrder;
+
+  const MenuPage({super.key, required this.onOpenOrder});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<MenuPage> createState() => _MenuPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _MenuPageState extends State<MenuPage> {
+  late Future<List<MenuItem>> _menu = MenuService.fetchMenu();
   String _selectedCategory =
       categories.first; // categoria selecionada nos chips
-  final List<MenuItem> _order = []; // itens adicionados ao pedido
 
   final _formKey = GlobalKey<FormState>();
   final _searchController = TextEditingController();
-  String? _searchTerm; // termo válido da última pesquisa (null = sem pesquisa)
   // Só começa a validar enquanto digita depois da primeira tentativa
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
-
-  // Filtra os itens do cardápio pela categoria escolhida e pelo nome pesquisado
-  List<MenuItem> get _filteredItems => menuItems
-      .where(
-        (i) => _selectedCategory == 'Todos' || i.category == _selectedCategory,
-      )
-      .where((i) => _searchTerm == null || matchesQuery(i.name, _searchTerm!))
-      .toList();
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _reload() {
+    setState(() {
+      _menu = MenuService.fetchMenu();
+    });
   }
 
   void _search() {
@@ -47,34 +48,16 @@ class _HomePageState extends State<HomePage> {
       return;
     }
     final term = normalizeQuery(_searchController.text);
-    setState(() {
-      _searchTerm = term;
-      _searchController.text = term; // mostra o termo já sem espaços extras
-    });
+    _searchController.text = term; // mostra o termo já sem espaços extras
     FocusScope.of(context).unfocus();
+    // Navega para a tela de resultados levando o termo pesquisado
+    Navigator.of(context).pushNamed(AppRoutes.search, arguments: term);
   }
 
-  void _clearSearch() {
-    _searchController.clear();
-    setState(() {
-      _searchTerm = null;
-      _autovalidateMode = AutovalidateMode.disabled;
-    });
-  }
-
-  double get _orderTotal => _order.fold(0, (sum, i) => sum + i.price);
-
-  void _addToOrder(MenuItem item) {
-    setState(() => _order.add(item));
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text('${item.name} adicionado ao pedido'),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-  }
+  List<MenuItem> _byCategory(List<MenuItem> items) =>
+      _selectedCategory == 'Todos'
+      ? items
+      : items.where((i) => i.category == _selectedCategory).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -88,15 +71,22 @@ class _HomePageState extends State<HomePage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
-          // Ícone do pedido com contador de itens
-          IconButton(
-            icon: Badge(
-              isLabelVisible: _order.isNotEmpty,
-              label: Text('${_order.length}'),
-              child: const Icon(Icons.receipt_long),
+          // Menu para demonstrar a tela de erro de conexão
+          ValueListenableBuilder(
+            valueListenable: MenuService.offline,
+            builder: (context, offline, _) => PopupMenuButton<void>(
+              tooltip: 'Opções',
+              itemBuilder: (_) => [
+                CheckedPopupMenuItem(
+                  checked: offline,
+                  onTap: () {
+                    MenuService.offline.value = !offline;
+                    _reload();
+                  },
+                  child: const Text('Simular sem conexão'),
+                ),
+              ],
             ),
-            tooltip: 'Meu pedido',
-            onPressed: _openOrder,
           ),
         ],
       ),
@@ -125,10 +115,14 @@ class _HomePageState extends State<HomePage> {
                       size: 18,
                       color: colors.primary,
                     ),
-                    Text(
-                      'Mesa 05 · Escolha seu prato e faça o pedido',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colors.onSurfaceVariant,
+                    // Flexible deixa o texto encolher em telas estreitas
+                    Flexible(
+                      child: Text(
+                        'Mesa 05 · Escolha seu prato e faça o pedido',
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ],
@@ -190,28 +184,6 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-                // Feedback da pesquisa: mostra o termo recebido
-                if (_searchTerm != null)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Resultados para "$_searchTerm": '
-                          '${_filteredItems.length} '
-                          '${_filteredItems.length == 1 ? 'prato' : 'pratos'}',
-                          key: const Key('searchFeedback'),
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      TextButton.icon(
-                        onPressed: _clearSearch,
-                        icon: const Icon(Icons.close, size: 18),
-                        label: const Text('Limpar'),
-                      ),
-                    ],
-                  ),
               ],
             ),
           ),
@@ -245,86 +217,55 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          // Expanded ocupa todo o espaço restante com a lista de pratos
+          // Expanded ocupa todo o espaço restante: carregando, erro ou lista
           Expanded(
-            child: _filteredItems.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      'Nenhum prato encontrado. Confira o nome digitado, '
-                      'troque a categoria ou pesquise outro prato.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _filteredItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _filteredItems[index];
-                      return MenuItemCard(
-                        item: item,
-                        onAdd: () => _addToOrder(item),
-                        onTap: () => _openDetail(item),
-                      );
-                    },
-                  ),
+            child: FutureBuilder(
+              future: _menu,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const StateView.loading(
+                    message: 'Buscando os pratos do cardápio.',
+                  );
+                }
+                if (snapshot.hasError) {
+                  return StateView(
+                    icon: Icons.wifi_off,
+                    title: 'Sem conexão',
+                    message:
+                        'Não foi possível carregar o cardápio. '
+                        'Verifique sua internet e tente novamente.',
+                    actionLabel: 'Tentar novamente',
+                    onAction: _reload,
+                  );
+                }
+                return MenuList(items: _byCategory(snapshot.data!));
+              },
+            ),
           ),
           // Botão "Ver pedido" aparece só quando há itens no pedido
-          if (_order.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: SizedBox(
-                width: double.infinity, // ocupa toda a largura da tela
-                child: FilledButton(
-                  onPressed: _openOrder,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+          ListenableBuilder(
+            listenable: order,
+            builder: (context, _) => order.isEmpty
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: SizedBox(
+                      width: double.infinity, // ocupa toda a largura da tela
+                      child: FilledButton(
+                        onPressed: widget.onOpenOrder,
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: Text(
+                          'Ver pedido (${order.count}) · ${formatPrice(order.total)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
                   ),
-                  child: Text(
-                    'Ver pedido (${_order.length}) · ${formatPrice(_orderTotal)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-      // Barra de navegação inferior: Cardápio e Pedido
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 0, // 0 = Cardápio
-        onDestinationSelected: (index) {
-          if (index == 1) _openOrder();
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.restaurant_menu_outlined),
-            selectedIcon: Icon(Icons.restaurant_menu),
-            label: 'Cardápio',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
-            label: 'Pedido',
           ),
         ],
       ),
     );
-  }
-
-  // Abre a tela de detalhes; se o usuário tocar em "Adicionar", entra no pedido
-  Future<void> _openDetail(MenuItem item) async {
-    final added = await Navigator.of(
-      context,
-    ).push<bool>(MaterialPageRoute(builder: (_) => ItemDetailPage(item: item)));
-    if (added == true) _addToOrder(item);
-  }
-
-  Future<void> _openOrder() async {
-    await Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => OrderPage(items: _order)));
-    setState(() {}); // atualiza o contador ao voltar do pedido
   }
 }
