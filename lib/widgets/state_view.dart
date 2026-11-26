@@ -1,73 +1,66 @@
 import 'package:flutter/material.dart';
 
-// Tela de estado reutilizável: carregando, erro, nenhum resultado, pedido vazio.
+import '../app/theme.dart';
+
+// Tela de estado reutilizável (RF07 / RF08):
+// erro de conexão, nenhum resultado e nenhum favorito.
 class StateView extends StatelessWidget {
-  final IconData? icon; // null = mostra o indicador de carregamento
+  final IconData icon;
   final String title;
   final String message;
-  final String? actionLabel;
-  final VoidCallback? onAction;
+  final String actionLabel;
+  final VoidCallback onAction;
+  final String? secondaryLabel; // botão de texto opcional
+  final VoidCallback? onSecondary;
 
   const StateView({
     super.key,
-    this.icon,
+    required this.icon,
     required this.title,
     required this.message,
-    this.actionLabel,
-    this.onAction,
+    required this.actionLabel,
+    required this.onAction,
+    this.secondaryLabel,
+    this.onSecondary,
   });
-
-  const StateView.loading({super.key, required this.message})
-    : icon = null,
-      title = 'Carregando...',
-      actionLabel = null,
-      onAction = null;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     // SingleChildScrollView evita estouro em telas baixas
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 12,
-          children: [
-            if (icon == null)
-              const SizedBox(
-                width: 48,
-                height: 48,
-                child: CircularProgressIndicator(),
-              )
-            else
-              Icon(icon, size: 72, color: colors.primary),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: CircleAvatar(
+              radius: 54,
+              backgroundColor: AppColors.soft,
+              child: Icon(icon, size: 44, color: AppColors.title),
             ),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colors.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            title,
+            style: textTheme.headlineSmall?.copyWith(
+              color: AppColors.title,
+              fontWeight: FontWeight.bold,
             ),
-            if (actionLabel != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: FilledButton(
-                  onPressed: onAction,
-                  child: Text(actionLabel!),
-                ),
-              ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: textTheme.bodyLarge?.copyWith(color: AppColors.text),
+          ),
+          const SizedBox(height: 40),
+          FilledButton(onPressed: onAction, child: Text(actionLabel)),
+          if (secondaryLabel != null) ...[
+            const SizedBox(height: 8),
+            TextButton(onPressed: onSecondary, child: Text(secondaryLabel!)),
           ],
-        ),
+        ],
       ),
     );
   }

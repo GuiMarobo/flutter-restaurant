@@ -1,29 +1,13 @@
-// Regras da pesquisa pelo nome do prato.
+// Regras da pesquisa pelo nome da receita (RF03).
 
-const searchErrorMessage =
-    'Digite o nome de um prato (ex.: Pudim). '
-    'O campo não pode ficar vazio nem só com espaços.';
+const searchErrorMessage = 'Digite um nome para pesquisar.';
 
 // Tira os espaços do começo e do fim e junta espaços repetidos no meio.
-// Ex.: "  filé   à  parmegiana " -> "filé à parmegiana"
+// Ex.: "  margherita   pizza " -> "margherita pizza"
 String normalizeQuery(String text) =>
     text.trim().replaceAll(RegExp(r'\s+'), ' ');
 
 // Retorna a mensagem de erro, ou null se a consulta for válida.
+// Recusa consulta vazia ou só com espaços.
 String? validateQuery(String? text) =>
     normalizeQuery(text ?? '').isEmpty ? searchErrorMessage : null;
-
-// Compara sem diferenciar maiúsculas/minúsculas nem acentos.
-bool matchesQuery(String name, String query) =>
-    _simplify(name).contains(_simplify(query));
-
-String _simplify(String text) {
-  const withAccents = 'áàâãäéèêëíìîïóòôõöúùûüç';
-  const withoutAccents = 'aaaaaeeeeiiiiooooouuuuc';
-  final buffer = StringBuffer();
-  for (final char in text.toLowerCase().split('')) {
-    final index = withAccents.indexOf(char);
-    buffer.write(index == -1 ? char : withoutAccents[index]);
-  }
-  return buffer.toString();
-}

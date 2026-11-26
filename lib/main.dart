@@ -1,41 +1,25 @@
 import 'package:flutter/material.dart';
 
-import 'routes.dart';
+import 'app/routes.dart';
+import 'app/theme.dart';
 
-// Paleta de cores do app
-const primary = Color(0xFFC0392B);
-const background = Color(0xFFFFF8F0);
-
-// App começa aqui
+// Ponto de entrada do app Saborê.
 void main() {
-  runApp(const RestaurantApp());
+  runApp(const SaboreApp());
 }
 
-// O app inteiro: define o tema e qual tela aparece primeiro.
-class RestaurantApp extends StatelessWidget {
-  const RestaurantApp({super.key});
+// Widget raiz: define o tema e as rotas de navegação.
+class SaboreApp extends StatelessWidget {
+  const SaboreApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cardápio Digital',
+      title: 'Saborê',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: primary,
-          primary: primary,
-          surface: background,
-        ),
-        scaffoldBackgroundColor: background,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: background,
-          foregroundColor: primary,
-          centerTitle: true,
-        ),
-        useMaterial3: true,
-      ),
+      theme: buildAppTheme(),
       initialRoute: AppRoutes.home,
-      onGenerateRoute: AppRoutes.generate, // define as navegações entre telas
+      onGenerateRoute: AppRoutes.generate,
     );
   }
 }
