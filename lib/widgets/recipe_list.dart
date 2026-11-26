@@ -4,8 +4,6 @@ import '../app/routes.dart';
 import '../models/recipe.dart';
 import 'recipe_card.dart';
 
-// Lista rolável de receitas (RF02), usada no Início, na Pesquisa e nos Favoritos.
-// [header] aparece antes dos cartões e [footer] depois, rolando junto.
 class RecipeList extends StatelessWidget {
   final List<Recipe> recipes;
   final Widget? header;
@@ -23,13 +21,11 @@ class RecipeList extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
-        ?header, // "?" = só entra na lista se não for null
+        ?header,
         for (final recipe in recipes)
           RecipeCard(
-            // A key pelo id ajuda o Flutter a reaproveitar o cartão certo
             key: ValueKey(recipe.id),
             recipe: recipe,
-            // Abre os detalhes da receita selecionada (RF04 / RF09)
             onTap: () =>
                 Navigator.of(context)
                     .pushNamed(AppRoutes.detail, arguments: recipe),

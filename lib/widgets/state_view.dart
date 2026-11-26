@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 
-// Tela de estado reutilizável (RF07 / RF08):
-// erro de conexão, nenhum resultado e nenhum favorito.
 class StateView extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
-  final String? secondaryLabel; // botão de texto opcional
+  final String? secondaryLabel;
   final VoidCallback? onSecondary;
 
   const StateView({
@@ -28,14 +26,12 @@ class StateView extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    // SingleChildScrollView evita estouro em telas baixas
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Ícone num quadrado arredondado e levemente inclinado
             Transform.rotate(
               angle: -0.08,
               child: Container(

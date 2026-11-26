@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 
-// Imagem da receita com alternativa visual (RF02):
-// - sem endereço de imagem -> mostra um ícone no lugar;
-// - carregando -> mostra um indicador pequeno;
-// - falha ao baixar -> mostra o mesmo ícone.
 class RecipeImage extends StatelessWidget {
   final String? url;
   final double? height;

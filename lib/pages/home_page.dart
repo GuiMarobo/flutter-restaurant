@@ -12,7 +12,6 @@ import '../widgets/recipe_list.dart';
 import '../widgets/search_field.dart';
 import '../widgets/state_view.dart';
 
-// Aba Início = Tela Principal (RF01) + Listagem (RF02).
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -21,8 +20,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // A requisição é criada UMA vez no initState (primeira abertura),
-  // e não no build: assim ela não se repete a cada reconstrução da tela.
   late Future<List<Recipe>> _recipes;
   final _searchController = TextEditingController();
 
@@ -38,14 +35,12 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  // "Tentar de novo": cria uma nova requisição.
   void _reload() {
     setState(() {
       _recipes = RecipeService.fetchRecipes();
     });
   }
 
-  // Abre a tela de pesquisa levando o termo digitado (ou nada, se vazio).
   void _openSearch() {
     final term = normalizeQuery(_searchController.text);
     FocusScope.of(context).unfocus();
@@ -61,11 +56,9 @@ class _HomePageState extends State<HomePage> {
         children: [
           AppHeader(trailing: _OfflineMenu(onChanged: _reload)),
           Expanded(
-            // FutureBuilder desenha cada estado da requisição
             child: FutureBuilder(
               future: _recipes,
               builder: (context, snapshot) {
-                // 1) Carregando (RF06)
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Padding(
                     padding: EdgeInsets.only(top: 16),
@@ -73,7 +66,6 @@ class _HomePageState extends State<HomePage> {
                   );
                 }
 
-                // 2) Erro (RF07)
                 if (snapshot.hasError) {
                   final error = snapshot.error;
                   return StateView(
@@ -87,7 +79,6 @@ class _HomePageState extends State<HomePage> {
                   );
                 }
 
-                // 3) Sucesso: chamada, busca e lista de receitas
                 final recipes = snapshot.data!;
                 return RecipeList(
                   recipes: recipes,
@@ -128,7 +119,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-// Menu ⋮ para simular a falta de internet e mostrar a tela de erro.
 class _OfflineMenu extends StatelessWidget {
   final VoidCallback onChanged;
 

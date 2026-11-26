@@ -5,11 +5,6 @@ import '../pages/main_page.dart';
 import '../pages/recipe_detail_page.dart';
 import '../pages/search_page.dart';
 
-// Todas as rotas do app ficam definidas aqui (RF09 - Navegação).
-//
-// /          -> MainPage (abas Explorar e Favoritos)
-// /pesquisa  -> SearchPage (recebe o termo digitado na tela principal, ou null)
-// /receita   -> RecipeDetailPage (recebe a Recipe selecionada)
 class AppRoutes {
   static const home = '/';
   static const search = '/pesquisa';

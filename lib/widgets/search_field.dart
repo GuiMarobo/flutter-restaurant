@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 
-// Campo de busca em formato de pílula + botão redondo de pesquisar ao lado.
-// Usado na tela inicial e na tela de pesquisa.
 class SearchField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode? focusNode;
-  final VoidCallback? onSubmitted; // null = botão desabilitado (carregando)
+  final VoidCallback? onSubmitted;
   final FormFieldValidator<String>? validator;
   final bool loading;
 
@@ -33,7 +31,6 @@ class SearchField extends StatelessWidget {
             focusNode: focusNode,
             validator: validator,
             textInputAction: TextInputAction.search,
-            // "Enter" do teclado também pesquisa
             onFieldSubmitted: (_) => onSubmitted?.call(),
             decoration: const InputDecoration(
               hintText: 'Nome da receita',

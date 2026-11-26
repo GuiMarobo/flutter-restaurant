@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 
-// Cabeçalho com a identidade do app: ícone + nome "Garfada" (RF01).
 class AppHeader extends StatelessWidget {
-  final Widget? trailing; // ação opcional à direita
+  final Widget? trailing;
 
   const AppHeader({super.key, this.trailing});
 
@@ -15,7 +14,6 @@ class AppHeader extends StatelessWidget {
       child: Row(
         spacing: 10,
         children: [
-          // "Logo": garfo e faca num quadrado laranja arredondado
           Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
@@ -34,14 +32,13 @@ class AppHeader extends StatelessWidget {
               ),
             ),
           ),
-          ?trailing, // só aparece se existir
+          ?trailing,
         ],
       ),
     );
   }
 }
 
-// Título de seção com contador opcional (ex.: "Todas as receitas  [50]").
 class SectionTitle extends StatelessWidget {
   final String title;
   final String? subtitle;

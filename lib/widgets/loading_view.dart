@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 
-// Feedback de carregamento (RF06): "esqueleto" dos cartões + mensagem.
 class LoadingView extends StatelessWidget {
   final String message;
 
@@ -12,7 +11,6 @@ class LoadingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      // Não deixa rolar o esqueleto
       physics: const NeverScrollableScrollPhysics(),
       children: [
         Row(
@@ -41,7 +39,6 @@ class LoadingView extends StatelessWidget {
   }
 }
 
-// Imita um cartão de receita ainda vazio.
 class _SkeletonCard extends StatelessWidget {
   const _SkeletonCard();
 
@@ -76,7 +73,6 @@ class _SkeletonCard extends StatelessWidget {
   }
 }
 
-// Retângulo claro que imita um conteúdo ainda não carregado.
 class _Bar extends StatelessWidget {
   final double height;
   final double radius;

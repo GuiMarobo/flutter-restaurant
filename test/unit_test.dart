@@ -123,7 +123,7 @@ void main() {
     controller.toggle(recipe);
     controller.toggle(const Recipe(id: 2, name: 'B'));
     expect(controller.count, 2);
-    controller.toggle(recipe); // segundo toque remove
+    controller.toggle(recipe);
     expect(controller.count, 1);
     expect(controller.isFavorite(recipe), isFalse);
   });

@@ -12,12 +12,10 @@ import '../widgets/recipe_list.dart';
 import '../widgets/search_field.dart';
 import '../widgets/state_view.dart';
 
-// Estados possíveis da tela de pesquisa.
 enum SearchStatus { idle, loading, results, empty, error }
 
-// Tela de pesquisa remota pelo nome (RF03).
 class SearchPage extends StatefulWidget {
-  final String? initialTerm; // termo vindo da tela inicial (pode ser null)
+  final String? initialTerm;
 
   const SearchPage({super.key, this.initialTerm});
 
@@ -32,12 +30,10 @@ class _SearchPageState extends State<SearchPage> {
   AutovalidateMode _autovalidate = AutovalidateMode.disabled;
 
   SearchStatus _status = SearchStatus.idle;
-  String _term = ''; // último termo pesquisado
+  String _term = '';
   List<Recipe> _results = [];
   ApiException? _error;
 
-  // Cada pesquisa ganha um número. Se chegar a resposta de uma pesquisa
-  // antiga (o usuário já limpou ou pesquisou outra coisa), ela é ignorada.
   int _requestId = 0;
 
   @override
@@ -59,18 +55,15 @@ class _SearchPageState extends State<SearchPage> {
     super.dispose();
   }
 
-  // Botão de pesquisar ou Enter do teclado.
   void _submit() {
-    // Evita cliques repetidos enquanto uma pesquisa está em andamento (RF06)
     if (_status == SearchStatus.loading) return;
 
-    // Consulta vazia ou só com espaços: mostra o erro e não pesquisa
     if (!_formKey.currentState!.validate()) {
       setState(() => _autovalidate = AutovalidateMode.onUserInteraction);
       return;
     }
 
-    final term = normalizeQuery(_controller.text); // trata espaços externos
+    final term = normalizeQuery(_controller.text);
     _controller.text = term;
     _focusNode.unfocus();
     setState(() {
@@ -80,12 +73,11 @@ class _SearchPageState extends State<SearchPage> {
     _fetch(term);
   }
 
-  // Chama a API e atualiza o estado com o resultado.
   Future<void> _fetch(String term) async {
     final requestId = ++_requestId;
     try {
       final recipes = await RecipeService.searchRecipes(term);
-      if (!mounted || requestId != _requestId) return; // resposta antiga
+      if (!mounted || requestId != _requestId) return;
       setState(() {
         _results = recipes;
         _status = recipes.isEmpty ? SearchStatus.empty : SearchStatus.results;
@@ -104,9 +96,8 @@ class _SearchPageState extends State<SearchPage> {
     _fetch(_term);
   }
 
-  // "Limpar busca": apaga o campo e os resultados.
   void _clear() {
-    _requestId++; // descarta uma pesquisa que ainda esteja carregando
+    _requestId++;
     _controller.clear();
     _formKey.currentState?.reset();
     setState(() {
@@ -117,7 +108,6 @@ class _SearchPageState extends State<SearchPage> {
     _focusNode.requestFocus();
   }
 
-  // "Tentar outro nome": coloca o cursor no campo com o texto selecionado.
   void _changeSearch() {
     _focusNode.requestFocus();
     _controller.selection = TextSelection(
@@ -126,7 +116,6 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  // "Voltar para o início": volta para a listagem.
   void _backToList() => Navigator.of(context).pop();
 
   @override
@@ -142,7 +131,6 @@ class _SearchPageState extends State<SearchPage> {
             child: Form(
               key: _formKey,
               autovalidateMode: _autovalidate,
-              // Botão desabilitado enquanto carrega: impede pesquisas repetidas
               child: SearchField(
                 controller: _controller,
                 focusNode: _focusNode,
@@ -158,7 +146,6 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  // Conteúdo abaixo do campo, conforme o estado atual.
   Widget _buildContent() {
     switch (_status) {
       case SearchStatus.idle:
@@ -174,7 +161,6 @@ class _SearchPageState extends State<SearchPage> {
           child: LoadingView(message: 'Buscando “$_term”…'),
         );
 
-      // Falha de rede/servidor (RF07) — diferente de "nenhum resultado"
       case SearchStatus.error:
         return StateView(
           icon: Icons.cloud_off_rounded,
@@ -186,7 +172,6 @@ class _SearchPageState extends State<SearchPage> {
           onSecondary: _backToList,
         );
 
-      // Busca sem correspondências (RF08)
       case SearchStatus.empty:
         return StateView(
           icon: Icons.no_food_outlined,
@@ -217,7 +202,6 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                   ),
                 ),
-                // Forma explícita de limpar a pesquisa
                 TextButton.icon(
                   onPressed: _clear,
                   icon: const Icon(Icons.close_rounded, size: 18),

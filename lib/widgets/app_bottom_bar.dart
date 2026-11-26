@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import '../app/theme.dart';
 import '../state/app_tab.dart';
 
-// Barra inferior com as abas Início e Favoritos.
-// Usada na MainPage e também na tela de pesquisa.
 class AppBottomBar extends StatelessWidget {
-  // true quando a barra está numa tela empilhada (pesquisa):
-  // ao trocar de aba, volta primeiro para a tela principal.
   final bool popToHome;
 
   const AppBottomBar({super.key, this.popToHome = false});

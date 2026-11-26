@@ -6,7 +6,6 @@ import '../utils/formatters.dart';
 import 'favorite_button.dart';
 import 'recipe_image.dart';
 
-// Cartão vertical: foto grande em cima, nome e informações embaixo.
 class RecipeCard extends StatelessWidget {
   final Recipe recipe;
   final VoidCallback onTap;
@@ -33,7 +32,6 @@ class RecipeCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Stack coloca a nota e o coração por cima da foto
             Stack(
               children: [
                 RecipeImage(url: recipe.image, height: 170),
@@ -56,7 +54,6 @@ class RecipeCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 8,
                 children: [
-                  // Nome longo: no máximo 2 linhas com "..."
                   Text(
                     recipe.name,
                     maxLines: 2,
@@ -88,7 +85,6 @@ class RecipeCard extends StatelessWidget {
   }
 }
 
-// Etiqueta branca com estrela e nota: ★ 4,6
 class _RatingBadge extends StatelessWidget {
   final String rating;
 
@@ -121,7 +117,6 @@ class _RatingBadge extends StatelessWidget {
   }
 }
 
-// Ícone pequeno + texto: 🕒 35 min
 class _IconText extends StatelessWidget {
   final IconData icon;
   final String text;

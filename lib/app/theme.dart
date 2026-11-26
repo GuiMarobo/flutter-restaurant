@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 
-// Paleta de cores do Garfada: tons quentes de laranja e creme.
 class AppColors {
-  static const primary = Color(0xFFE2622C); // laranja dos botões
-  static const ink = Color(0xFF2A211C); // marrom quase preto dos títulos
-  static const background = Color(0xFFFFFAF5); // creme do fundo
-  static const surface = Colors.white; // cartões
-  static const soft = Color(0xFFFDEBDF); // laranja clarinho (campos, ícones)
-  static const placeholder = Color(0xFFF3E6DA); // fundo da imagem
-  static const muted = Color(0xFF7A6E66); // textos secundários
+  static const primary = Color(0xFFE2622C);
+  static const ink = Color(0xFF2A211C);
+  static const background = Color(0xFFFFFAF5);
+  static const surface = Colors.white;
+  static const soft = Color(0xFFFDEBDF);
+  static const placeholder = Color(0xFFF3E6DA);
+  static const muted = Color(0xFF7A6E66);
   static const border = Color(0xFFF0E2D6);
-  static const favorite = Color(0xFFE0453A); // coração e erros
-  static const star = Color(0xFFF2A93B); // estrela da nota
+  static const favorite = Color(0xFFE0453A);
+  static const star = Color(0xFFF2A93B);
 }
 
 ThemeData buildAppTheme() {
@@ -22,7 +21,7 @@ ThemeData buildAppTheme() {
     error: AppColors.favorite,
   );
 
-  const pill = StadiumBorder(); // botões e campos em formato de pílula
+  const pill = StadiumBorder();
   const buttonText = TextStyle(fontWeight: FontWeight.w700, fontSize: 15);
 
   return ThemeData(
@@ -40,7 +39,6 @@ ThemeData buildAppTheme() {
         fontWeight: FontWeight.w800,
       ),
     ),
-    // Campos sem borda, com fundo laranja clarinho
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: AppColors.soft,

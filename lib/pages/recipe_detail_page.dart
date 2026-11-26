@@ -7,10 +7,6 @@ import '../utils/formatters.dart';
 import '../widgets/favorite_button.dart';
 import '../widgets/recipe_image.dart';
 
-// Detalhes da receita selecionada (RF04).
-//
-// Recebe o objeto Recipe completo que veio da listagem/pesquisa
-// (não precisa chamar /recipes/{id} de novo — ver recipe_service.dart).
 class RecipeDetailPage extends StatelessWidget {
   final Recipe recipe;
 
@@ -21,7 +17,6 @@ class RecipeDetailPage extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      // CustomScrollView: a foto encolhe ao rolar e o conteúdo longo rola
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -78,7 +73,6 @@ class RecipeDetailPage extends StatelessWidget {
                   'Cozimento: ${_minutes(recipe.cookTimeMinutes)}',
                   style: textTheme.bodySmall?.copyWith(color: AppColors.muted),
                 ),
-                // mealType é uma LISTA (pode ter vários tipos de refeição)
                 if (recipe.mealType.isNotEmpty) ...[
                   const SizedBox(height: 14),
                   Wrap(
@@ -102,7 +96,6 @@ class RecipeDetailPage extends StatelessWidget {
                   ),
                 ],
 
-                // ---- Ingredientes ----
                 _SectionHeader(
                   title: 'Ingredientes',
                   count: recipe.ingredients.length,
@@ -117,7 +110,6 @@ class RecipeDetailPage extends StatelessWidget {
                     ],
                   ),
 
-                // ---- Passo a passo (mantém a ordem da API) ----
                 _SectionHeader(
                   title: 'Passo a passo',
                   count: recipe.instructions.length,
@@ -132,7 +124,6 @@ class RecipeDetailPage extends StatelessWidget {
           ),
         ],
       ),
-      // Botão fixo embaixo para salvar/remover dos favoritos
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
@@ -165,7 +156,6 @@ class RecipeDetailPage extends StatelessWidget {
       value == null ? 'não informado' : '$value min';
 }
 
-// Faixa com tempo total, porções, nota e dificuldade (só o que existir).
 class _Stats extends StatelessWidget {
   final Recipe recipe;
 
@@ -192,7 +182,6 @@ class _Stats extends StatelessWidget {
               label: total == null ? 'sem tempo' : 'total',
             ),
           ),
-          // Porções só aparecem quando a API manda um valor utilizável
           if (recipe.servings != null)
             Expanded(
               child: _Stat(
@@ -255,7 +244,6 @@ class _Stat extends StatelessWidget {
   }
 }
 
-// Título de seção com a quantidade de itens: "Ingredientes · 6"
 class _SectionHeader extends StatelessWidget {
   final String title;
   final int count;
@@ -290,7 +278,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// Caixa branca arredondada que agrupa os ingredientes.
 class _WhiteBox extends StatelessWidget {
   final List<Widget> children;
 
@@ -310,7 +297,6 @@ class _WhiteBox extends StatelessWidget {
   }
 }
 
-// Ingrediente com um "check" laranja na frente.
 class _Ingredient extends StatelessWidget {
   final String text;
 
@@ -336,7 +322,6 @@ class _Ingredient extends StatelessWidget {
   }
 }
 
-// Passo do preparo: número num quadradinho laranja + texto.
 class _Step extends StatelessWidget {
   final int number;
   final String text;
@@ -382,7 +367,6 @@ class _Step extends StatelessWidget {
   }
 }
 
-// Texto pequeno e cinza para avisos.
 class _Note extends StatelessWidget {
   final String text;
 

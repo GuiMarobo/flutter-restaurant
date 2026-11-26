@@ -11,7 +11,6 @@ import 'package:flutter_restaurant/state/app_tab.dart';
 import 'package:flutter_restaurant/state/favorites_controller.dart';
 import 'package:flutter_restaurant/utils/search_query.dart';
 
-// Receitas falsas no mesmo formato da API DummyJSON.
 final _pizza = {
   'id': 1,
   'name': 'Classic Margherita Pizza',
@@ -26,7 +25,6 @@ final _pizza = {
 };
 final _salad = {'id': 2, 'name': 'Greek Salad', 'rating': 4};
 
-// API falsa: lista, pesquisa e um modo "sem internet".
 bool _offline = false;
 final _fakeApi = MockClient((request) async {
   if (_offline) throw http.ClientException('offline');
@@ -50,14 +48,13 @@ void main() {
   });
 
   Future<void> openApp(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1080, 2340); // celular 360x780
+    tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(const GarfadaApp());
   }
 
   Future<void> searchFor(WidgetTester tester, String text) async {
-    // Campo vazio na tela inicial: abre a tela de pesquisa
     await tester.tap(find.byTooltip('Pesquisar'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('searchField')), text);
@@ -107,17 +104,14 @@ void main() {
     expect(find.text('1 receita para “margherita”'), findsOneWidget);
     expect(find.text('Greek Salad'), findsNothing);
 
-    // Abre o detalhe (RF04)
     await tester.tap(find.text('Classic Margherita Pizza'));
     await tester.pumpAndSettle();
     expect(find.text('35 min'), findsOneWidget);
-    // Conteúdo longo: rola até os ingredientes e o passo de preparo
     await tester.scrollUntilVisible(find.text('Pizza dough'), 200);
     expect(find.text('Ingredientes'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Preheat the oven.'), 200);
     expect(find.text('Preheat the oven.'), findsOneWidget);
 
-    // Volta: a pesquisa continua lá (RF09)
     await tester.tap(find.byTooltip('Voltar'));
     await tester.pumpAndSettle();
     expect(find.text('1 receita para “margherita”'), findsOneWidget);
@@ -142,12 +136,10 @@ void main() {
     await openApp(tester);
     await tester.pumpAndSettle();
 
-    // Favoritos vazio
     await tester.tap(find.text('Favoritos'));
     await tester.pumpAndSettle();
     expect(find.text('Sua lista está vazia'), findsOneWidget);
 
-    // Volta e favorita a pizza
     await tester.tap(find.text('Ver receitas'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Favoritar').first);
@@ -162,7 +154,6 @@ void main() {
     );
     expect(find.text('Classic Margherita Pizza'), findsOneWidget);
 
-    // Toque no coração remove
     await tester.tap(find.byTooltip('Desfavoritar'));
     await tester.pumpAndSettle();
     expect(find.text('Sua lista está vazia'), findsOneWidget);

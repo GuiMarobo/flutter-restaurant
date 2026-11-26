@@ -4,8 +4,6 @@ import '../app/theme.dart';
 import '../models/recipe.dart';
 import '../state/favorites_controller.dart';
 
-// Coração branco e redondo que favorita/desfavorita a receita (RF05).
-// Fica por cima da foto, no cartão e na tela de detalhes.
 class FavoriteButton extends StatelessWidget {
   final Recipe recipe;
 
@@ -13,7 +11,6 @@ class FavoriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Redesenha só o coração quando os favoritos mudam
     return ListenableBuilder(
       listenable: favorites,
       builder: (context, _) {
