@@ -4,7 +4,7 @@ import '../app/routes.dart';
 import '../models/recipe.dart';
 import 'recipe_card.dart';
 
-// Lista rolável de receitas (RF02), usada em Explorar, Pesquisa e Favoritos.
+// Lista rolável de receitas (RF02), usada no Início, na Pesquisa e nos Favoritos.
 // [header] aparece antes dos cartões e [footer] depois, rolando junto.
 class RecipeList extends StatelessWidget {
   final List<Recipe> recipes;
@@ -21,7 +21,7 @@ class RecipeList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
         ?header, // "?" = só entra na lista se não for null
         for (final recipe in recipes)

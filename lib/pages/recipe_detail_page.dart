@@ -19,90 +19,144 @@ class RecipeDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final sectionStyle = textTheme.titleLarge?.copyWith(
-      color: AppColors.title,
-      fontWeight: FontWeight.bold,
-    );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Receita'),
-        actions: [
-          FavoriteButton(recipe: recipe),
-          const SizedBox(width: 8),
-        ],
-      ),
-      // ListView: o conteúdo inteiro rola, mesmo com muitos passos
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-        children: [
-          RecipeImage(url: recipe.image, height: 200, iconSize: 72, radius: 20),
-          const SizedBox(height: 20),
-          Text(
-            recipe.name,
-            style: textTheme.headlineSmall?.copyWith(
-              color: AppColors.title,
-              fontWeight: FontWeight.bold,
+      // CustomScrollView: a foto encolhe ao rolar e o conteúdo longo rola
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 300,
+            backgroundColor: AppColors.background,
+            leading: Padding(
+              padding: const EdgeInsets.all(6),
+              child: IconButton.filled(
+                tooltip: 'Voltar',
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.surface,
+                  foregroundColor: AppColors.ink,
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back_rounded),
+              ),
+            ),
+            actions: [
+              FavoriteButton(recipe: recipe),
+              const SizedBox(width: 8),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: RecipeImage(url: recipe.image, iconSize: 80),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            joinInfo([
-              recipe.cuisine,
-              formatDifficulty(recipe.difficulty),
-              formatRating(recipe.rating),
-            ]),
-            style: textTheme.bodyMedium?.copyWith(color: AppColors.text),
-          ),
-          // mealType é uma LISTA (pode ter vários tipos de refeição)
-          if (recipe.mealType.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            sliver: SliverList.list(
               children: [
-                for (final type in recipe.mealType)
-                  Chip(
-                    label: Text(type),
-                    backgroundColor: AppColors.soft,
-                    side: BorderSide.none,
-                    visualDensity: VisualDensity.compact,
+                if (recipe.cuisine != null)
+                  Text(
+                    recipe.cuisine!.toUpperCase(),
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                      fontSize: 12,
+                    ),
                   ),
+                const SizedBox(height: 6),
+                Text(
+                  recipe.name,
+                  style: textTheme.headlineSmall?.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _Stats(recipe: recipe),
+                const SizedBox(height: 10),
+                Text(
+                  'Preparo: ${_minutes(recipe.prepTimeMinutes)}  ·  '
+                  'Cozimento: ${_minutes(recipe.cookTimeMinutes)}',
+                  style: textTheme.bodySmall?.copyWith(color: AppColors.muted),
+                ),
+                // mealType é uma LISTA (pode ter vários tipos de refeição)
+                if (recipe.mealType.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final type in recipe.mealType)
+                        Chip(
+                          avatar: const Icon(
+                            Icons.local_dining,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                          label: Text(type),
+                          shape: const StadiumBorder(
+                            side: BorderSide(color: AppColors.border),
+                          ),
+                          backgroundColor: AppColors.surface,
+                        ),
+                    ],
+                  ),
+                ],
+
+                // ---- Ingredientes ----
+                _SectionHeader(
+                  title: 'Ingredientes',
+                  count: recipe.ingredients.length,
+                ),
+                if (recipe.ingredients.isEmpty)
+                  const _Note('Ingredientes não informados.')
+                else
+                  _WhiteBox(
+                    children: [
+                      for (final ingredient in recipe.ingredients)
+                        _Ingredient(text: ingredient),
+                    ],
+                  ),
+
+                // ---- Passo a passo (mantém a ordem da API) ----
+                _SectionHeader(
+                  title: 'Passo a passo',
+                  count: recipe.instructions.length,
+                ),
+                if (recipe.instructions.isEmpty)
+                  const _Note('Modo de preparo não informado.')
+                else
+                  for (var i = 0; i < recipe.instructions.length; i++)
+                    _Step(number: i + 1, text: recipe.instructions[i]),
               ],
             ),
-          ],
-          const SizedBox(height: 16),
-          _InfoBoxes(recipe: recipe),
-          const SizedBox(height: 8),
-          Text(
-            'Preparo: ${_minutes(recipe.prepTimeMinutes)}  •  '
-            'Cozimento: ${_minutes(recipe.cookTimeMinutes)}',
-            style: textTheme.bodySmall?.copyWith(color: AppColors.text),
           ),
-
-          // ---- Ingredientes ----
-          const SizedBox(height: 24),
-          Text('Ingredientes', style: sectionStyle),
-          const SizedBox(height: 8),
-          if (recipe.ingredients.isEmpty)
-            const _Missing('Ingredientes não informados.')
-          else
-            for (final ingredient in recipe.ingredients)
-              _Bullet(text: ingredient),
-
-          // ---- Modo de preparo (mantém a ordem da API) ----
-          const SizedBox(height: 24),
-          Text('Modo de preparo', style: sectionStyle),
-          const SizedBox(height: 8),
-          if (recipe.instructions.isEmpty)
-            const _Missing('Modo de preparo não informado.')
-          else
-            for (var i = 0; i < recipe.instructions.length; i++)
-              _Step(number: i + 1, text: recipe.instructions[i]),
-
-          const SizedBox(height: 24),
-          const _Missing('Role para ler todos os ingredientes e passos.'),
         ],
+      ),
+      // Botão fixo embaixo para salvar/remover dos favoritos
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+          child: ListenableBuilder(
+            listenable: favorites,
+            builder: (context, _) {
+              final saved = favorites.isFavorite(recipe);
+              return saved
+                  ? OutlinedButton.icon(
+                      onPressed: () => favorites.toggle(recipe),
+                      icon: const Icon(
+                        Icons.favorite,
+                        color: AppColors.favorite,
+                      ),
+                      label: const Text('Remover dos favoritos'),
+                    )
+                  : FilledButton.icon(
+                      onPressed: () => favorites.toggle(recipe),
+                      icon: const Icon(Icons.favorite_border),
+                      label: const Text('Salvar nos favoritos'),
+                    );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -111,98 +165,169 @@ class RecipeDetailPage extends StatelessWidget {
       value == null ? 'não informado' : '$value min';
 }
 
-// Três caixinhas: tempo total, porções e se está nos favoritos.
-class _InfoBoxes extends StatelessWidget {
+// Faixa com tempo total, porções, nota e dificuldade (só o que existir).
+class _Stats extends StatelessWidget {
   final Recipe recipe;
 
-  const _InfoBoxes({required this.recipe});
+  const _Stats({required this.recipe});
 
   @override
   Widget build(BuildContext context) {
     final total = recipe.totalMinutes;
-    return Row(
-      spacing: 10,
-      children: [
-        Expanded(
-          child: _InfoBox(
-            value: total == null ? '—' : '$total min',
-            label: total == null ? 'tempo não informado' : 'tempo total',
-          ),
-        ),
-        // Porções só aparecem quando a API manda um valor utilizável
-        if (recipe.servings != null)
-          Expanded(
-            child: _InfoBox(value: '${recipe.servings}', label: 'porções'),
-          ),
-        Expanded(
-          child: ListenableBuilder(
-            listenable: favorites,
-            builder: (context, _) => favorites.isFavorite(recipe)
-                ? const _InfoBox(value: 'Salva', label: 'nos favoritos')
-                : const _InfoBox(value: 'Não salva', label: 'toque no ♡'),
-          ),
-        ),
-      ],
-    );
-  }
-}
+    final rating = formatRating(recipe.rating);
+    final difficulty = formatDifficulty(recipe.difficulty);
 
-class _InfoBox extends StatelessWidget {
-  final String value;
-  final String label;
-
-  const _InfoBox({required this.value, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
         color: AppColors.soft,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: textTheme.titleMedium?.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
+          Expanded(
+            child: _Stat(
+              icon: Icons.timer_outlined,
+              value: total == null ? '—' : '$total min',
+              label: total == null ? 'sem tempo' : 'total',
             ),
           ),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: textTheme.labelSmall?.copyWith(color: AppColors.text),
-          ),
+          // Porções só aparecem quando a API manda um valor utilizável
+          if (recipe.servings != null)
+            Expanded(
+              child: _Stat(
+                icon: Icons.people_outline,
+                value: '${recipe.servings}',
+                label: 'porções',
+              ),
+            ),
+          if (rating != null)
+            Expanded(
+              child: _Stat(
+                icon: Icons.star_rounded,
+                value: rating,
+                label: 'nota',
+              ),
+            ),
+          if (difficulty != null)
+            Expanded(
+              child: _Stat(
+                icon: Icons.signal_cellular_alt,
+                value: difficulty,
+                label: 'nível',
+              ),
+            ),
         ],
       ),
     );
   }
 }
 
-// Item da lista de ingredientes: "• Massa de pizza"
-class _Bullet extends StatelessWidget {
-  final String text;
+class _Stat extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
 
-  const _Bullet({required this.text});
+  const _Stat({required this.icon, required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: 2,
+      children: [
+        Icon(icon, color: AppColors.primary, size: 22),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: AppColors.ink,
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: AppColors.muted, fontSize: 12),
+        ),
+      ],
+    );
+  }
+}
+
+// Título de seção com a quantidade de itens: "Ingredientes · 6"
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final int count;
+
+  const _SectionHeader({required this.title, required this.count});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.only(top: 28, bottom: 12),
+      child: Row(
+        spacing: 8,
+        children: [
+          Flexible(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(color: AppColors.ink, fontWeight: FontWeight.w800),
+            ),
+          ),
+          if (count > 0)
+            Text(
+              '· $count',
+              style: const TextStyle(
+                color: AppColors.muted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// Caixa branca arredondada que agrupa os ingredientes.
+class _WhiteBox extends StatelessWidget {
+  final List<Widget> children;
+
+  const _WhiteBox({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(children: children),
+    );
+  }
+}
+
+// Ingrediente com um "check" laranja na frente.
+class _Ingredient extends StatelessWidget {
+  final String text;
+
+  const _Ingredient({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 10,
+        spacing: 12,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 7),
-            child: CircleAvatar(radius: 3, backgroundColor: AppColors.primary),
+          const Icon(
+            Icons.check_circle_outline,
+            size: 20,
+            color: AppColors.primary,
           ),
           Expanded(child: Text(text, style: const TextStyle(fontSize: 15))),
         ],
@@ -211,7 +336,7 @@ class _Bullet extends StatelessWidget {
   }
 }
 
-// Passo numerado do modo de preparo: (1) Preaqueça o forno...
+// Passo do preparo: número num quadradinho laranja + texto.
 class _Step extends StatelessWidget {
   final int number;
   final String text;
@@ -221,24 +346,36 @@ class _Step extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 12,
+        spacing: 14,
         children: [
-          CircleAvatar(
-            radius: 13,
-            backgroundColor: AppColors.primary,
+          Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: Text(
               '$number',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 15))),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 5),
+              child: Text(
+                text,
+                style: const TextStyle(fontSize: 15, height: 1.4),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -246,17 +383,13 @@ class _Step extends StatelessWidget {
 }
 
 // Texto pequeno e cinza para avisos.
-class _Missing extends StatelessWidget {
+class _Note extends StatelessWidget {
   final String text;
 
-  const _Missing(this.text);
+  const _Note(this.text);
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.bodySmall
-          ?.copyWith(color: AppColors.text),
-    );
+    return Text(text, style: const TextStyle(color: AppColors.muted));
   }
 }

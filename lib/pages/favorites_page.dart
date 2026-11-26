@@ -7,7 +7,7 @@ import '../widgets/app_header.dart';
 import '../widgets/recipe_list.dart';
 import '../widgets/state_view.dart';
 
-// Aba Favoritos (RF05): receitas salvas nesta sessão.
+// Aba Favoritos (RF05): receitas guardadas nesta sessão.
 class FavoritesPage extends StatelessWidget {
   const FavoritesPage({super.key});
 
@@ -15,7 +15,7 @@ class FavoritesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const AppHeader(),
           Expanded(
@@ -26,27 +26,28 @@ class FavoritesPage extends StatelessWidget {
                 // Favoritos vazios: mensagem própria, diferente de erro (RF08)
                 if (favorites.isEmpty) {
                   return StateView(
-                    icon: Icons.favorite_border,
-                    title: 'Nenhum favorito',
+                    icon: Icons.favorite_border_rounded,
+                    title: 'Sua lista está vazia',
                     message:
-                        'Marque uma receita como favorita para '
-                        'encontrá-la aqui.',
-                    actionLabel: 'Explorar receitas',
-                    onAction: () => selectedTab.value = AppTab.explore,
+                        'Toque no coração de uma receita '
+                        'para guardá-la aqui.',
+                    actionLabel: 'Ver receitas',
+                    onAction: () => selectedTab.value = AppTab.home,
                   );
                 }
                 return RecipeList(
                   recipes: favorites.recipes,
-                  header: const SectionTitle(
-                    title: 'Favoritos',
-                    subtitle: 'Receitas salvas nesta sessão.',
-                    large: true,
+                  header: SectionTitle(
+                    title: 'Seus favoritos',
+                    count: favorites.count,
+                    subtitle: 'Guardados enquanto o app estiver aberto.',
                   ),
                   footer: const Padding(
-                    padding: EdgeInsets.only(top: 24),
+                    padding: EdgeInsets.only(top: 8),
                     child: Text(
-                      'Toque no coração para remover.',
-                      style: TextStyle(color: AppColors.text),
+                      'Toque no coração para tirar da lista.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.muted),
                     ),
                   ),
                 );

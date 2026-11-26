@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../state/app_tab.dart';
 import '../widgets/app_bottom_bar.dart';
-import 'explore_page.dart';
 import 'favorites_page.dart';
+import 'home_page.dart';
 
-// Tela base com a barra inferior: abas Explorar e Favoritos.
+// Tela base com a barra inferior: abas Início e Favoritos.
 class MainPage extends StatelessWidget {
   const MainPage({super.key});
 
@@ -19,7 +19,7 @@ class MainPage extends StatelessWidget {
         valueListenable: selectedTab,
         builder: (context, tab, _) => IndexedStack(
           index: tab,
-          children: const [ExplorePage(), FavoritesPage()],
+          children: const [HomePage(), FavoritesPage()],
         ),
       ),
       bottomNavigationBar: const AppBottomBar(),

@@ -2,10 +2,10 @@ import '../models/recipe.dart';
 
 // Funções que transformam os dados da receita em texto para a tela.
 
-// 4.6 -> "4,6 / 5"   |   4 -> "4,0 / 5"   |   null -> null
+// 4.6 -> "4,6"   |   4 -> "4,0"   |   null -> null
 String? formatRating(num? rating) {
   if (rating == null) return null;
-  return '${rating.toStringAsFixed(1).replaceAll('.', ',')} / 5';
+  return rating.toStringAsFixed(1).replaceAll('.', ',');
 }
 
 // Easy -> Fácil. Valores desconhecidos aparecem como vieram da API.
@@ -28,5 +28,6 @@ String formatTime(Recipe recipe) {
   return 'Tempo não informado'; // ausência NÃO vira "0 min"
 }
 
-// Junta só os textos que existem: ["35 min", null, "Fácil"] -> "35 min • Fácil"
-String joinInfo(List<String?> parts) => parts.whereType<String>().join('  •  ');
+// 1 -> "1 receita"   |   3 -> "3 receitas"
+String countRecipes(int count) =>
+    '$count ${count == 1 ? 'receita' : 'receitas'}';

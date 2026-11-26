@@ -4,9 +4,9 @@ import '../app/theme.dart';
 import '../models/recipe.dart';
 import '../services/api_exception.dart';
 import '../services/recipe_service.dart';
+import '../utils/formatters.dart';
 import '../utils/search_query.dart';
 import '../widgets/app_bottom_bar.dart';
-import '../widgets/app_header.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/recipe_list.dart';
 import '../widgets/search_field.dart';
@@ -17,7 +17,7 @@ enum SearchStatus { idle, loading, results, empty, error }
 
 // Tela de pesquisa remota pelo nome (RF03).
 class SearchPage extends StatefulWidget {
-  final String? initialTerm; // termo vindo da tela principal (pode ser null)
+  final String? initialTerm; // termo vindo da tela inicial (pode ser null)
 
   const SearchPage({super.key, this.initialTerm});
 
@@ -59,7 +59,7 @@ class _SearchPageState extends State<SearchPage> {
     super.dispose();
   }
 
-  // Botão "Pesquisar" ou Enter do teclado.
+  // Botão de pesquisar ou Enter do teclado.
   void _submit() {
     // Evita cliques repetidos enquanto uma pesquisa está em andamento (RF06)
     if (_status == SearchStatus.loading) return;
@@ -104,7 +104,7 @@ class _SearchPageState extends State<SearchPage> {
     _fetch(_term);
   }
 
-  // "Limpar pesquisa": apaga o campo e os resultados.
+  // "Limpar busca": apaga o campo e os resultados.
   void _clear() {
     _requestId++; // descarta uma pesquisa que ainda esteja carregando
     _controller.clear();
@@ -117,7 +117,7 @@ class _SearchPageState extends State<SearchPage> {
     _focusNode.requestFocus();
   }
 
-  // "Alterar pesquisa": coloca o cursor no campo com o texto selecionado.
+  // "Tentar outro nome": coloca o cursor no campo com o texto selecionado.
   void _changeSearch() {
     _focusNode.requestFocus();
     _controller.selection = TextSelection(
@@ -126,125 +126,104 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  // "Ver todas as receitas": volta para a listagem.
+  // "Voltar para o início": volta para a listagem.
   void _backToList() => Navigator.of(context).pop();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pesquisar receitas')),
+      appBar: AppBar(title: const Text('Buscar receitas')),
       bottomNavigationBar: const AppBottomBar(popToHome: true),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Divider(height: 1, indent: 24, endIndent: 24),
-          _buildForm(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Form(
+              key: _formKey,
+              autovalidateMode: _autovalidate,
+              // Botão desabilitado enquanto carrega: impede pesquisas repetidas
+              child: SearchField(
+                controller: _controller,
+                focusNode: _focusNode,
+                validator: validateQuery,
+                loading: _status == SearchStatus.loading,
+                onSubmitted: _status == SearchStatus.loading ? null : _submit,
+              ),
+            ),
+          ),
           Expanded(child: _buildContent()),
         ],
       ),
     );
   }
 
-  // Campo + botão "Pesquisar" (sempre no topo).
-  Widget _buildForm() {
-    final loading = _status == SearchStatus.loading;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-      child: Form(
-        key: _formKey,
-        autovalidateMode: _autovalidate,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_status == SearchStatus.idle)
-              const SectionTitle(title: 'Qual receita você procura?'),
-            const Text(
-              'Nome da receita',
-              style: TextStyle(
-                color: AppColors.title,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            SearchField(
-              controller: _controller,
-              focusNode: _focusNode,
-              validator: validateQuery,
-              onSubmitted: _submit,
-            ),
-            const SizedBox(height: 16),
-            // Desabilitado enquanto carrega: impede pesquisas repetidas
-            FilledButton(
-              onPressed: loading ? null : _submit,
-              child: loading
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Pesquisar'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Conteúdo abaixo do formulário, conforme o estado atual.
+  // Conteúdo abaixo do campo, conforme o estado atual.
   Widget _buildContent() {
     switch (_status) {
       case SearchStatus.idle:
-        return const Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Você pode buscar por parte do nome da receita.',
-            style: TextStyle(color: AppColors.text),
-          ),
+        return const StateView(
+          icon: Icons.manage_search_rounded,
+          title: 'Qual prato você quer fazer?',
+          message: 'Dica: vale digitar só uma parte do nome.',
         );
 
       case SearchStatus.loading:
         return Padding(
-          padding: const EdgeInsets.only(top: 24),
-          child: LoadingView(message: 'Pesquisando “$_term”…'),
+          padding: const EdgeInsets.only(top: 20),
+          child: LoadingView(message: 'Buscando “$_term”…'),
         );
 
       // Falha de rede/servidor (RF07) — diferente de "nenhum resultado"
       case SearchStatus.error:
         return StateView(
-          icon: Icons.wifi_off,
-          title: 'Não foi possível pesquisar.',
+          icon: Icons.cloud_off_rounded,
+          title: 'Ops! A busca falhou.',
           message: _error!.message,
-          actionLabel: 'Tentar novamente',
+          actionLabel: 'Tentar de novo',
           onAction: _retry,
-          secondaryLabel: 'Ver todas as receitas',
+          secondaryLabel: 'Voltar para o início',
           onSecondary: _backToList,
         );
 
       // Busca sem correspondências (RF08)
       case SearchStatus.empty:
         return StateView(
-          icon: Icons.search_off,
-          title: 'Nenhum resultado',
+          icon: Icons.no_food_outlined,
+          title: 'Nada por aqui',
           message:
-              'Não encontramos receitas para “$_term”. '
-              'Tente outro termo.',
-          actionLabel: 'Alterar pesquisa',
+              'Nenhuma receita com “$_term”. '
+              'Que tal tentar outro nome?',
+          actionLabel: 'Tentar outro nome',
           onAction: _changeSearch,
-          secondaryLabel: 'Ver todas as receitas',
+          secondaryLabel: 'Voltar para o início',
           onSecondary: _backToList,
         );
 
       case SearchStatus.results:
         return RecipeList(
           recipes: _results,
-          header: SectionTitle(
-            title: 'Resultados para “$_term”',
-            subtitle: 'Toque na receita para ver o preparo.',
-          ),
-          footer: Padding(
-            padding: const EdgeInsets.only(top: 24),
-            child: OutlinedButton(
-              onPressed: _clear,
-              child: const Text('Limpar pesquisa'),
+          header: Padding(
+            padding: const EdgeInsets.only(top: 16, bottom: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${countRecipes(_results.length)} para “$_term”',
+                    style: const TextStyle(
+                      color: AppColors.ink,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                // Forma explícita de limpar a pesquisa
+                TextButton.icon(
+                  onPressed: _clear,
+                  icon: const Icon(Icons.close_rounded, size: 18),
+                  label: const Text('Limpar busca'),
+                ),
+              ],
             ),
           ),
         );

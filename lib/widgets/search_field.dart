@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 
-// Campo "Buscar pelo nome" usado na tela principal e na tela de pesquisa.
+// Campo de busca em formato de pílula + botão redondo de pesquisar ao lado.
+// Usado na tela inicial e na tela de pesquisa.
 class SearchField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode? focusNode;
-  final VoidCallback onSubmitted;
+  final VoidCallback? onSubmitted; // null = botão desabilitado (carregando)
   final FormFieldValidator<String>? validator;
+  final bool loading;
 
   const SearchField({
     super.key,
@@ -15,30 +17,50 @@ class SearchField extends StatelessWidget {
     required this.onSubmitted,
     this.focusNode,
     this.validator,
+    this.loading = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      key: const Key('searchField'),
-      controller: controller,
-      focusNode: focusNode,
-      validator: validator,
-      textInputAction: TextInputAction.search,
-      onFieldSubmitted: (_) => onSubmitted(), // "Enter" do teclado pesquisa
-      decoration: const InputDecoration(
-        hintText: 'Buscar pelo nome',
-        prefixIcon: Icon(Icons.search, color: AppColors.text),
-        // Borda vermelha quando a consulta é recusada
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: AppColors.favorite),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 10,
+      children: [
+        Expanded(
+          child: TextFormField(
+            key: const Key('searchField'),
+            controller: controller,
+            focusNode: focusNode,
+            validator: validator,
+            textInputAction: TextInputAction.search,
+            // "Enter" do teclado também pesquisa
+            onFieldSubmitted: (_) => onSubmitted?.call(),
+            decoration: const InputDecoration(
+              hintText: 'Nome da receita',
+              prefixIcon: Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: Icon(Icons.search, color: AppColors.primary),
+              ),
+            ),
+          ),
         ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-          borderSide: BorderSide(color: AppColors.favorite, width: 2),
+        SizedBox.square(
+          dimension: 52,
+          child: IconButton.filled(
+            tooltip: 'Pesquisar',
+            onPressed: onSubmitted,
+            icon: loading
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.arrow_forward_rounded),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

@@ -1,6 +1,6 @@
 // Regras da pesquisa pelo nome da receita (RF03).
 
-const searchErrorMessage = 'Digite um nome para pesquisar.';
+const searchErrorMessage = 'Escreva o nome de uma receita.';
 
 // Tira os espaços do começo e do fim e junta espaços repetidos no meio.
 // Ex.: "  margherita   pizza " -> "margherita pizza"

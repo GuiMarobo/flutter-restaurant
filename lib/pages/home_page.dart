@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app/routes.dart';
+import '../app/theme.dart';
 import '../models/recipe.dart';
 import '../services/api_exception.dart';
 import '../services/recipe_service.dart';
@@ -11,15 +12,15 @@ import '../widgets/recipe_list.dart';
 import '../widgets/search_field.dart';
 import '../widgets/state_view.dart';
 
-// Aba Explorar = Tela Principal (RF01) + Listagem (RF02).
-class ExplorePage extends StatefulWidget {
-  const ExplorePage({super.key});
+// Aba Início = Tela Principal (RF01) + Listagem (RF02).
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<ExplorePage> createState() => _ExplorePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _ExplorePageState extends State<ExplorePage> {
+class _HomePageState extends State<HomePage> {
   // A requisição é criada UMA vez no initState (primeira abertura),
   // e não no build: assim ela não se repete a cada reconstrução da tela.
   late Future<List<Recipe>> _recipes;
@@ -37,7 +38,7 @@ class _ExplorePageState extends State<ExplorePage> {
     super.dispose();
   }
 
-  // "Tentar novamente": cria uma nova requisição.
+  // "Tentar de novo": cria uma nova requisição.
   void _reload() {
     setState(() {
       _recipes = RecipeService.fetchRecipes();
@@ -56,7 +57,7 @@ class _ExplorePageState extends State<ExplorePage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AppHeader(trailing: _OfflineMenu(onChanged: _reload)),
           Expanded(
@@ -66,15 +67,9 @@ class _ExplorePageState extends State<ExplorePage> {
               builder: (context, snapshot) {
                 // 1) Carregando (RF06)
                 if (snapshot.connectionState != ConnectionState.done) {
-                  return const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24),
-                        child: SectionTitle(title: 'Explorar receitas'),
-                      ),
-                      Expanded(child: LoadingView()),
-                    ],
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: LoadingView(),
                   );
                 }
 
@@ -82,42 +77,44 @@ class _ExplorePageState extends State<ExplorePage> {
                 if (snapshot.hasError) {
                   final error = snapshot.error;
                   return StateView(
-                    icon: Icons.priority_high,
-                    title: 'Não foi possível carregar as receitas.',
+                    icon: Icons.cloud_off_rounded,
+                    title: 'Ops! As receitas não carregaram.',
                     message: error is ApiException
                         ? error.message
                         : 'Tente novamente.',
-                    actionLabel: 'Tentar novamente',
+                    actionLabel: 'Tentar de novo',
                     onAction: _reload,
                   );
                 }
 
-                // 3) Sucesso: busca no topo e lista de receitas
+                // 3) Sucesso: chamada, busca e lista de receitas
                 final recipes = snapshot.data!;
                 return RecipeList(
                   recipes: recipes,
                   header: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SectionTitle(
-                        title: 'Receitas',
-                        subtitle: 'Pesquise uma receita pelo nome.',
-                        large: true,
+                      const SizedBox(height: 16),
+                      Text(
+                        'O que vamos\ncozinhar hoje?',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: AppColors.ink,
+                              fontWeight: FontWeight.w900,
+                              height: 1.15,
+                            ),
                       ),
+                      const SizedBox(height: 16),
                       SearchField(
                         controller: _searchController,
                         onSubmitted: _openSearch,
                       ),
-                      const SizedBox(height: 12),
-                      FilledButton(
-                        onPressed: _openSearch,
-                        child: const Text('Buscar receitas'),
-                      ),
                       SectionTitle(
-                        title: 'Receitas disponíveis',
+                        title: 'Todas as receitas',
+                        count: recipes.length,
                         subtitle: recipes.isEmpty
                             ? 'Nenhuma receita disponível no momento.'
-                            : 'Selecione uma receita para ver o preparo.',
+                            : 'Toque em uma receita para ver o preparo.',
                       ),
                     ],
                   ),
@@ -131,7 +128,7 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 }
 
-// Menu ⋮ para simular a falta de internet e mostrar a tela de erro no vídeo.
+// Menu ⋮ para simular a falta de internet e mostrar a tela de erro.
 class _OfflineMenu extends StatelessWidget {
   final VoidCallback onChanged;
 

@@ -42,7 +42,7 @@ void main() {
       });
       expect(recipe.totalMinutes, 35);
       expect(recipe.instructions, ['Preheat', 'Bake']);
-      expect(formatRating(recipe.rating), '4,6 / 5');
+      expect(formatRating(recipe.rating), '4,6');
       expect(formatDifficulty(recipe.difficulty), 'Fácil');
     });
 
@@ -53,7 +53,7 @@ void main() {
         'rating': 5,
         'mealType': 'Lunch',
       });
-      expect(formatRating(recipe.rating), '5,0 / 5');
+      expect(formatRating(recipe.rating), '5,0');
       expect(recipe.mealType, ['Lunch']);
     });
 

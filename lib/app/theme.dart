@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
-// Paleta de cores tirada do Guia Visual do Saborê.
+// Paleta de cores do Garfada: tons quentes de laranja e creme.
 class AppColors {
-  static const primary = Color(0xFF245C4A); // verde dos botões
-  static const title = Color(0xFF1F3D32); // verde escuro dos títulos
-  static const background = Color(0xFFF7F4EE); // bege do fundo
-  static const surface = Colors.white; // cartões e campos
-  static const soft = Color(0xFFE6EEE7); // verde clarinho (chips, ícones)
-  static const placeholder = Color(0xFFE5E3D8); // fundo da imagem
-  static const text = Color(0xFF5E6461); // textos secundários
-  static const border = Color(0xFFDDDDD5);
-  static const favorite = Color(0xFFC0502B); // coração e erros
+  static const primary = Color(0xFFE2622C); // laranja dos botões
+  static const ink = Color(0xFF2A211C); // marrom quase preto dos títulos
+  static const background = Color(0xFFFFFAF5); // creme do fundo
+  static const surface = Colors.white; // cartões
+  static const soft = Color(0xFFFDEBDF); // laranja clarinho (campos, ícones)
+  static const placeholder = Color(0xFFF3E6DA); // fundo da imagem
+  static const muted = Color(0xFF7A6E66); // textos secundários
+  static const border = Color(0xFFF0E2D6);
+  static const favorite = Color(0xFFE0453A); // coração e erros
+  static const star = Color(0xFFF2A93B); // estrela da nota
 }
 
 ThemeData buildAppTheme() {
@@ -21,9 +22,8 @@ ThemeData buildAppTheme() {
     error: AppColors.favorite,
   );
 
-  const radius = BorderRadius.all(Radius.circular(12));
-  const buttonPadding = EdgeInsets.symmetric(vertical: 16);
-  const buttonText = TextStyle(fontWeight: FontWeight.bold, fontSize: 15);
+  const pill = StadiumBorder(); // botões e campos em formato de pílula
+  const buttonText = TextStyle(fontWeight: FontWeight.w700, fontSize: 15);
 
   return ThemeData(
     useMaterial3: true,
@@ -31,54 +31,74 @@ ThemeData buildAppTheme() {
     scaffoldBackgroundColor: AppColors.background,
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.background,
-      foregroundColor: AppColors.title,
+      foregroundColor: AppColors.ink,
       surfaceTintColor: Colors.transparent,
-      centerTitle: false,
+      centerTitle: true,
       titleTextStyle: TextStyle(
-        color: AppColors.title,
-        fontSize: 19,
-        fontWeight: FontWeight.bold,
+        color: AppColors.ink,
+        fontSize: 17,
+        fontWeight: FontWeight.w800,
       ),
     ),
-    // Campos de texto brancos com borda arredondada
-    inputDecorationTheme: InputDecorationTheme(
+    // Campos sem borda, com fundo laranja clarinho
+    inputDecorationTheme: const InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.surface,
-      contentPadding: const EdgeInsets.symmetric(vertical: 14),
-      hintStyle: const TextStyle(color: AppColors.text),
-      border: const OutlineInputBorder(
-        borderRadius: radius,
-        borderSide: BorderSide(color: AppColors.border),
+      fillColor: AppColors.soft,
+      contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      hintStyle: TextStyle(color: AppColors.muted),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(30)),
+        borderSide: BorderSide.none,
       ),
-      enabledBorder: const OutlineInputBorder(
-        borderRadius: radius,
-        borderSide: BorderSide(color: AppColors.border),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(30)),
+        borderSide: BorderSide(color: AppColors.primary, width: 1.5),
       ),
-      focusedBorder: const OutlineInputBorder(
-        borderRadius: radius,
-        borderSide: BorderSide(color: AppColors.primary, width: 2),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(30)),
+        borderSide: BorderSide(color: AppColors.favorite),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(30)),
+        borderSide: BorderSide(color: AppColors.favorite, width: 1.5),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(48),
-        padding: buttonPadding,
+        minimumSize: const Size.fromHeight(52),
         textStyle: buttonText,
-        shape: const RoundedRectangleBorder(borderRadius: radius),
+        shape: pill,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(48),
-        padding: buttonPadding,
+        minimumSize: const Size.fromHeight(52),
+        foregroundColor: AppColors.primary,
         textStyle: buttonText,
         side: const BorderSide(color: AppColors.primary),
-        shape: const RoundedRectangleBorder(borderRadius: radius),
+        shape: pill,
       ),
     ),
-    navigationBarTheme: const NavigationBarThemeData(
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.primary,
+        textStyle: buttonText,
+      ),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
       backgroundColor: AppColors.surface,
       indicatorColor: AppColors.soft,
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (states) => TextStyle(
+          fontSize: 12,
+          fontWeight: states.contains(WidgetState.selected)
+              ? FontWeight.w700
+              : FontWeight.w500,
+          color: states.contains(WidgetState.selected)
+              ? AppColors.primary
+              : AppColors.muted,
+        ),
+      ),
     ),
   );
 }

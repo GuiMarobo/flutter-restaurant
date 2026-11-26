@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 
-// Cabeçalho com a identidade do app ("Saborê") e uma linha divisória (RF01).
+// Cabeçalho com a identidade do app: ícone + nome "Garfada" (RF01).
 class AppHeader extends StatelessWidget {
   final Widget? trailing; // ação opcional à direita
 
@@ -11,64 +11,94 @@ class AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 12, 0),
-      child: Column(
+      padding: const EdgeInsets.fromLTRB(20, 12, 8, 4),
+      child: Row(
+        spacing: 10,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Saborê',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppColors.title,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          // "Logo": garfo e faca num quadrado laranja arredondado
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.restaurant, color: Colors.white, size: 20),
+          ),
+          Expanded(
+            child: Text(
+              'Garfada',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppColors.ink,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
               ),
-              ?trailing, // só aparece se existir
-            ],
+            ),
           ),
-          const Padding(
-            padding: EdgeInsets.only(top: 12, right: 12),
-            child: Divider(height: 1, color: AppColors.border),
-          ),
+          ?trailing, // só aparece se existir
         ],
       ),
     );
   }
 }
 
-// Título de seção com subtítulo opcional (ex.: "Favoritos" / "Receitas salvas...").
+// Título de seção com contador opcional (ex.: "Todas as receitas  [50]").
 class SectionTitle extends StatelessWidget {
   final String title;
   final String? subtitle;
-  final bool large;
+  final int? count;
 
   const SectionTitle({
     super.key,
     required this.title,
     this.subtitle,
-    this.large = false,
+    this.count,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 16),
+      padding: const EdgeInsets.only(top: 24, bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 6,
+        spacing: 4,
         children: [
-          Text(
-            title,
-            style: (large ? textTheme.headlineSmall : textTheme.titleLarge)
-                ?.copyWith(color: AppColors.title, fontWeight: FontWeight.bold),
+          Row(
+            spacing: 8,
+            children: [
+              Flexible(
+                child: Text(
+                  title,
+                  style: textTheme.titleLarge?.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (count != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.soft,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
           ),
           if (subtitle != null)
             Text(
               subtitle!,
-              style: textTheme.bodyMedium?.copyWith(color: AppColors.text),
+              style: textTheme.bodyMedium?.copyWith(color: AppColors.muted),
             ),
         ],
       ),

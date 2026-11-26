@@ -45,7 +45,7 @@ void main() {
   setUp(() {
     _offline = false;
     favorites.clear();
-    selectedTab.value = AppTab.explore;
+    selectedTab.value = AppTab.home;
     RecipeService.client = _fakeApi;
   });
 
@@ -53,25 +53,26 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2340); // celular 360x780
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(const SaboreApp());
+    await tester.pumpWidget(const GarfadaApp());
   }
 
   Future<void> searchFor(WidgetTester tester, String text) async {
-    await tester.tap(find.text('Buscar receitas'));
+    // Campo vazio na tela inicial: abre a tela de pesquisa
+    await tester.tap(find.byTooltip('Pesquisar'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('searchField')), text);
-    await tester.tap(find.widgetWithText(FilledButton, 'Pesquisar'));
+    await tester.tap(find.byTooltip('Pesquisar'));
     await tester.pumpAndSettle();
   }
 
   testWidgets('RF01/RF02/RF06: carrega e mostra a lista', (tester) async {
     await openApp(tester);
-    expect(find.text('Carregando receitas…'), findsOneWidget);
+    expect(find.text('Preparando as receitas…'), findsOneWidget);
 
     await tester.pumpAndSettle();
-    expect(find.text('Saborê'), findsOneWidget);
+    expect(find.text('Garfada'), findsOneWidget);
     expect(find.text('Classic Margherita Pizza'), findsOneWidget);
-    expect(find.text('35 min  •  Fácil'), findsOneWidget);
+    expect(find.text('35 min'), findsOneWidget);
     expect(find.text('Greek Salad'), findsOneWidget);
   });
 
@@ -79,10 +80,10 @@ void main() {
     _offline = true;
     await openApp(tester);
     await tester.pumpAndSettle();
-    expect(find.text('Não foi possível carregar as receitas.'), findsOneWidget);
+    expect(find.text('Ops! As receitas não carregaram.'), findsOneWidget);
 
     _offline = false;
-    await tester.tap(find.text('Tentar novamente'));
+    await tester.tap(find.text('Tentar de novo'));
     await tester.pumpAndSettle();
     expect(find.text('Classic Margherita Pizza'), findsOneWidget);
   });
@@ -93,7 +94,7 @@ void main() {
     await searchFor(tester, '   ');
 
     expect(find.text(searchErrorMessage), findsOneWidget);
-    expect(find.text('Qual receita você procura?'), findsOneWidget);
+    expect(find.text('Qual prato você quer fazer?'), findsOneWidget);
   });
 
   testWidgets('RF03/RF09: pesquisa, abre detalhe, volta e limpa', (
@@ -103,27 +104,27 @@ void main() {
     await tester.pumpAndSettle();
     await searchFor(tester, '  margherita ');
 
-    expect(find.text('Resultados para “margherita”'), findsOneWidget);
+    expect(find.text('1 receita para “margherita”'), findsOneWidget);
     expect(find.text('Greek Salad'), findsNothing);
 
     // Abre o detalhe (RF04)
     await tester.tap(find.text('Classic Margherita Pizza'));
     await tester.pumpAndSettle();
-    expect(find.text('Ingredientes'), findsOneWidget);
-    expect(find.text('Pizza dough'), findsOneWidget);
     expect(find.text('35 min'), findsOneWidget);
-    // Conteúdo longo: rola até o passo de preparo
+    // Conteúdo longo: rola até os ingredientes e o passo de preparo
+    await tester.scrollUntilVisible(find.text('Pizza dough'), 200);
+    expect(find.text('Ingredientes'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Preheat the oven.'), 200);
     expect(find.text('Preheat the oven.'), findsOneWidget);
 
     // Volta: a pesquisa continua lá (RF09)
-    await tester.pageBack();
+    await tester.tap(find.byTooltip('Voltar'));
     await tester.pumpAndSettle();
-    expect(find.text('Resultados para “margherita”'), findsOneWidget);
+    expect(find.text('1 receita para “margherita”'), findsOneWidget);
 
-    await tester.tap(find.text('Limpar pesquisa'));
+    await tester.tap(find.text('Limpar busca'));
     await tester.pumpAndSettle();
-    expect(find.text('Qual receita você procura?'), findsOneWidget);
+    expect(find.text('Qual prato você quer fazer?'), findsOneWidget);
   });
 
   testWidgets('RF08: pesquisa sem resultados', (tester) async {
@@ -131,10 +132,10 @@ void main() {
     await tester.pumpAndSettle();
     await searchFor(tester, 'zzzz987');
 
-    expect(find.text('Nenhum resultado'), findsOneWidget);
-    await tester.tap(find.text('Ver todas as receitas'));
+    expect(find.text('Nada por aqui'), findsOneWidget);
+    await tester.tap(find.text('Voltar para o início'));
     await tester.pumpAndSettle();
-    expect(find.text('Receitas disponíveis'), findsOneWidget);
+    expect(find.text('Todas as receitas'), findsOneWidget);
   });
 
   testWidgets('RF05/RF08: favoritar e desfavoritar', (tester) async {
@@ -144,23 +145,26 @@ void main() {
     // Favoritos vazio
     await tester.tap(find.text('Favoritos'));
     await tester.pumpAndSettle();
-    expect(find.text('Nenhum favorito'), findsOneWidget);
+    expect(find.text('Sua lista está vazia'), findsOneWidget);
 
     // Volta e favorita a pizza
-    await tester.tap(find.text('Explorar receitas'));
+    await tester.tap(find.text('Ver receitas'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Adicionar aos favoritos').first);
+    await tester.tap(find.byTooltip('Favoritar').first);
     await tester.pump();
     expect(favorites.count, 1);
 
     await tester.tap(find.text('Favoritos'));
     await tester.pumpAndSettle();
-    expect(find.text('Receitas salvas nesta sessão.'), findsOneWidget);
+    expect(
+      find.text('Guardados enquanto o app estiver aberto.'),
+      findsOneWidget,
+    );
     expect(find.text('Classic Margherita Pizza'), findsOneWidget);
 
     // Toque no coração remove
-    await tester.tap(find.byTooltip('Remover dos favoritos'));
+    await tester.tap(find.byTooltip('Desfavoritar'));
     await tester.pumpAndSettle();
-    expect(find.text('Nenhum favorito'), findsOneWidget);
+    expect(find.text('Sua lista está vazia'), findsOneWidget);
   });
 }
