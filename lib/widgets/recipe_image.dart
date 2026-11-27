@@ -31,19 +31,29 @@ class RecipeImage extends StatelessWidget {
       color: AppColors.placeholder,
       child: url == null
           ? fallback
-          : Image.network(
-              url!,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, progress) => progress == null
-                  ? child
-                  : const Center(
-                      child: SizedBox.square(
-                        dimension: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+          : LayoutBuilder(
+              builder: (context, constraints) => Image.network(
+                url!,
+                fit: BoxFit.cover,
+                cacheWidth: _decodeWidth(context, constraints),
+                loadingBuilder: (context, child, progress) => progress == null
+                    ? child
+                    : const Center(
+                        child: SizedBox.square(
+                          dimension: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
                       ),
-                    ),
-              errorBuilder: (context, error, stackTrace) => fallback,
+                errorBuilder: (context, error, stackTrace) => fallback,
+              ),
             ),
     );
+  }
+
+  int? _decodeWidth(BuildContext context, BoxConstraints constraints) {
+    final side = constraints.maxWidth.isFinite
+        ? constraints.maxWidth
+        : MediaQuery.sizeOf(context).width;
+    return (side * MediaQuery.devicePixelRatioOf(context)).round();
   }
 }
